@@ -71,8 +71,11 @@ def dumpmacho(path, opts):
    elif magic == '\xCF\xFA\xED\xFE':
       f.isLSB, f.is64Bit = True, True
    else:
-      raise ValueError,"Not a Mach-O object file: %r (bad magic)" % path
+      f.isLSB, f.is64Bit = False, True
+      # print(magic)
+      # raise ValueError,"Not a Mach-O object file: %r (bad magic)" % path
 
+   # ➜  DSYMCreator git:(master) ✗ ./toolchain/DSYMCreator --uuid 91AE4831-3D40-3FCE-ABFC-17E0CB64FD26 --raw_ida_symbol /Users/bytedance/Documents/GitHub/DSYMCreator/input.txt --dwarf_section_vmbase 0x100000000 --output /Users/bytedance/Documents/GitHub/DSYMCreator/aaa --arm64
    print "('cputype', %r)" % f.read32()
    print "('cpusubtype', %r)" % f.read32()
    filetype = f.read32()

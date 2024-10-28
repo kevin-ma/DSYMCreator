@@ -11,7 +11,7 @@ import argparse
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 TOOLCHAIN_DIR = os.path.join(THIS_DIR, 'toolchain')
 
-IDA_EXE_PATH = '/Applications/idaq.app/Contents/MacOS/idaq'
+IDA_EXE_PATH = '/Applications/IDA7.5/ida64.app/Contents/MacOS/ida64'
 
 def run_bash(command):
   shell_path = '/tmp/dsym_creator_temp_shell.sh'
@@ -20,6 +20,7 @@ def run_bash(command):
 
 def extract_raw_symbol_from_objc_symbols(binary_path, is_arm64):
   objc_symbols_bin_path = os.path.join(TOOLCHAIN_DIR, 'objc-symbols')
+  print(is_arm64)
   arch = 'arm64' if is_arm64 else 'armv7'
   raw_symbols = run_bash('%s --arch %s %s | sort' % (objc_symbols_bin_path, arch, binary_path))
   
@@ -45,32 +46,36 @@ def make_sure_ida_exists():
     sys.exit(1)
 
 def extract_thin_if_binary_is_fat(binary_path, is_arm64):
-  magic_num = struct.unpack('<L', open(binary_path, 'r').read(4))[0]
-  if magic_num == 0xbebafeca:
-    # fat file, extract armv7
-    arch = 'arm64' if is_arm64 else 'armv7'
-    fresh_binary_path = '/tmp/dsym_creator_binary_' + arch
-    run_bash('lipo -thin %s %s -output %s' % (arch, binary_path, fresh_binary_path))
-    binary_path = fresh_binary_path
-  elif magic_num == 0xfeedface and not is_arm64:
-    pass
-  elif magic_num == 0xfeedfacf and is_arm64:
-    pass
-  else:
-    # invalid file
-    print >> sys.stderr, 'invalid binary file: %s' % binary_path
-    sys.exit(1)
+  # magic_num = struct.unpack('<L', open(binary_path, 'r').read(4))[0]
+  # if magic_num == 0xbebafeca:
+  #   # fat file, extract armv7
+  #   arch = 'arm64' if is_arm64 else 'armv7'
+  #   fresh_binary_path = '/tmp/dsym_creator_binary_' + arch
+  #   run_bash('lipo -thin %s %s -output %s' % (arch, binary_path, fresh_binary_path))
+  #   binary_path = fresh_binary_path
+  # elif magic_num == 0xfeedface and not is_arm64:
+  #   pass
+  # elif magic_num == 0xfeedfacf and is_arm64:
+  #   pass
+  # else:
+  #   # invalid file
+  #   print >> sys.stderr, 'invalid binary file: %s' % binary_path
+  #   sys.exit(1)
   return binary_path
 
 def extract_raw_symbol_from_ida(binary_path):
   raw_symbol_path = '/tmp/dsym_creator_raw_symbol.txt'
   idc_script_path = os.path.join(TOOLCHAIN_DIR, 'IDAScript', 'all.idc')
-  run_bash('%s -S"%s \"%s\"" %s' % (IDA_EXE_PATH, idc_script_path, raw_symbol_path, binary_path))
+  cmd = '%s -S"%s \"%s\"" %s' % (IDA_EXE_PATH, idc_script_path, raw_symbol_path, binary_path)
+  print(cmd)
+  run_bash(cmd)
   return raw_symbol_path
 
 def extract_uuid_from_binary(binary_path):
   macho_dump_path = os.path.join(TOOLCHAIN_DIR, 'macho-dump.py')
-  uuid = run_bash('%s %s 2>/dev/null | grep uuid | egrep -o \'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\'' % (macho_dump_path, binary_path))
+  cmd = '%s %s 2>/dev/null | grep uuid | egrep -o \'\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\'' % (macho_dump_path, binary_path)
+  print(cmd)
+  uuid = run_bash(cmd)
   return uuid
 
 def calculate_dwarf_sections_min_file_offset_from_binary(binary_path):
@@ -99,6 +104,7 @@ def dsymcreator_format_symbol(uuid, raw_ida_symbol, dwarf_section_offset, output
     sys.exit(1)
 
 def main(options):
+  print(options)
   binary_path = os.path.abspath(options.binary_path)
   binary_dir, binary_file_name = os.path.split(binary_path)
   output_symbol_path = os.path.join(binary_dir, '%s.symbol' % binary_file_name)

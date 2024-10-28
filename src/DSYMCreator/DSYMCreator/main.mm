@@ -19,9 +19,12 @@ DEFINE_string(raw_ida_symbol, "", "file path for the output by the ida script");
 DEFINE_string(output, "", "file path to save the symbol");
 DEFINE_string(dwarf_section_vmbase, "", "vm base addr for dwarf sections, in hex format");
 DEFINE_bool(arm64, false, "build 64 bit symbol file (ARM64)");
-
+//--uuid 91AE4831-3D40-3FCE-ABFC-17E0CB64FD26 --raw_ida_symbol /Users/bytedance/Desktop/DSYM_LIB/value.txt --dwarf_section_vmbase 0x100000000 --output /Users/bytedance/Desktop/DSYM_LIB/out --arm64
+//--uuid 59eed19d-a1e9-3f57-b78f-93ad8f5c98df --raw_ida_symbol /Users/bytedance/Code/PangleSymbolicTool/workspace/out2 --dwarf_section_vmbase 0x100000000 --output /Users/bytedance/Desktop/oooout2 --arm64
+// 59eed19d-a1e9-3f57-b78f-93ad8f5c98df
 namespace {
     void init_gflag_config(int& argc, char**& argv) {
+        printf("count %d\n",argc); //--uuid 91AE4831-3D40-3FCE-ABFC-17E0CB64FD26 --raw_ida_symbol /Users/bytedance/Documents/GitHub/DSYMCreator/input.txt --dwarf_section_vmbase 0x100000000 --output /Users/bytedance/Documents/GitHub/DSYMCreator/aaa --arm64
         std::string usage("recreate the symbol file from ida output for ios application, e.g.\n");
         usage += std::string("\n") + argv[0] + " --uuid \"14494083-a184-31e2-946b-3f942a402952\" --raw_ida_symbol \"/tmp/symbols.txt\" --dwarf_section_vmbase 0x40000 --output \"/path/to/save/loadable_symbol\" \n";
         usage += std::string("then if no error occurs, a fresh symbol file will be created at /path/to/save/loadable_symbol");
@@ -53,7 +56,7 @@ namespace {
         std::vector<Symbol<T>> symbols;
         for (NSString* line in lines) {
             if (line.length > 0) {
-                NSArray* parts = [line componentsSeparatedByString:@"\t"];
+                NSArray* parts = [line componentsSeparatedByString:@"|"];
                 assert(parts.count == 3);
                 std::string name([parts[2] UTF8String]);
                 T base = (T)std::stoull(std::string([parts[0] UTF8String]), nullptr, 16);

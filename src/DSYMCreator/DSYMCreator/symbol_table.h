@@ -33,7 +33,7 @@ ByteBuffer SymbolTable<T>::dump(const std::vector<Symbol<T>>& symbols,
         Nlist<T> nlist;
         auto it = name_to_offset.find(s.name);
         assert(it != name_to_offset.end());
-        nlist.n_un.n_strx = it->second;
+        nlist.n_un.n_strx = it->second + 2;
         nlist.n_type = N_SECT;
         nlist.n_sect = 1;      // since we only have one dummy section
         nlist.n_desc = std::is_same<T, uint64_t>::value ? 0 : N_ARM_THUMB_DEF;      // under 64 bit, there is no thumb mode

@@ -112,6 +112,30 @@ struct DwarfSegmentCommand : public internal::SegmentCommand<T> {
     }
 };
 
+template <typename T>
+struct PageZeroSegmentCommand : public internal::SegmentCommand<T> {
+    PageZeroSegmentCommand() {
+        memset(this->segname, 0, sizeof(this->segname));
+        memcpy(this->segname, "_PAGEZERO", 9);
+        // text segment base address, must equal to the value in binary, TODO: configurable
+        this->vmaddr = 0x0;
+        this->vmsize = std::is_same<T, uint64_t>::value ? 0x100000000 : 0x4000;
+        this->maxprot = 0;
+        this->initprot = 0;
+    }
+};
+
+template <typename T>
+struct LinkEditSegmentCommand : public internal::SegmentCommand<T> {
+    LinkEditSegmentCommand() {
+        memset(this->segname, 0, sizeof(this->segname));
+        memcpy(this->segname, "_LINKEDIT", 9);
+        // text segment base address, must equal to the value in binary, TODO: configurable
+        this->maxprot = 1;
+        this->initprot = 1;
+    }
+};
+
 namespace internal {
     struct Section32 : public section {};
     struct Section64 : public section_64 {};
